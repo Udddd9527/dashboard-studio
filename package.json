@@ -1,0 +1,16 @@
+{
+  "name": "dashboard-studio-local",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "dmdb": "^1.0.52452",
+    "exceljs": "4.4.0",
+    "mssql": "^11.0.1",
+    "mysql2": "^3.24.6",
+    "oracledb": "^26.0.0",
+    "readable-stream": "3.6.2"
+  }
+}

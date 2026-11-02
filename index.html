@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="从业务需求、数据库字段到可部署看板的一体化工作区" />
+  <title>看板工场 · Dashboard Studio</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="extras.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"><span></span><span></span><span></span></div>
+        <div><strong>看板工场</strong><small>Dashboard Studio</small></div>
+      </div>
+
+      <button class="project-switcher" id="projectSwitcher">
+        <span class="project-icon">智</span>
+        <span><b id="projectNameSide">智慧园区经营驾驶舱</b><small>演示项目 · 自动保存</small></span>
+        <span class="chevron">⌄</span>
+      </button>
+
+      <nav class="steps" aria-label="生成步骤">
+        <button class="step-item active" data-stage="prototype">
+          <span class="step-index">01</span><span><b>定义看板原型</b><small>业务理解 · 指标设计</small></span><i>6</i>
+        </button>
+        <button class="step-item" data-stage="data">
+          <span class="step-index">02</span><span><b>生成取数逻辑</b><small>字段映射 · SQL 配置</small></span><i>4</i>
+        </button>
+        <button class="step-item" data-stage="deploy">
+          <span class="step-index">03</span><span><b>测试与部署</b><small>质量检查 · 镜像发布</small></span><i>3</i>
+        </button>
+      </nav>
+
+      <div class="side-section">
+        <p>项目资产</p>
+        <button class="side-link" data-open="schema"><span>⌗</span> 数据库结构 <b id="schemaCount">8 张表</b></button>
+        <button class="side-link" data-open="references"><span>▧</span> 参考材料 <b>3 份</b></button>
+        <button class="side-link" data-open="variables"><span>{ }</span> 项目变量 <b>12 项</b></button>
+      </div>
+
+      <div class="side-footer">
+        <div class="model-status"><span class="pulse"></span><div><b>DeepSeek 生成引擎</b><small>本地安全连接</small></div></div>
+        <button class="icon-btn" id="settingsBtn" title="设置">⚙</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumbs"><span>我的项目</span><i>/</i><b id="breadcrumbProject">智慧园区经营驾驶舱</b></div>
+        <div class="top-actions">
+          <span class="saved-state" id="savedState">✓ 已自动保存</span>
+          <button class="btn ghost" id="exportBtn">导出项目</button>
+          <button class="btn dark locked" id="previewBtn" disabled title="请先填写业务场景描述">⌁ 填写业务场景后预览</button>
+        </div>
+      </header>
+
+      <section class="stage active" id="stage-prototype">
+        <div class="stage-head">
+          <div><span class="eyebrow">STEP 01 · DISCOVERY & PROTOTYPE</span><h1>先让模型真正理解你的业务</h1><p>提供业务上下文与数据库结构，生成有价值、且能被真实数据支撑的看板方案。</p></div>
+          <div class="progress-ring"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18"></circle><circle class="value" cx="22" cy="22" r="18"></circle></svg><span>72%</span></div>
+        </div>
+
+        <div class="workspace-grid prototype-grid">
+          <section class="panel brief-panel">
+            <div class="panel-head"><div><span class="num">1</span><b>项目简报</b></div><span class="tag" id="briefStatus">待确认</span></div>
+            <label>看板名称<input id="projectName" value="智慧园区经营驾驶舱" /></label>
+            <label>业务方向
+              <div class="chip-group" id="directionChips">
+                <button class="chip selected">经营分析</button><button class="chip">运营监控</button><button class="chip">销售管理</button><button class="chip">项目管理</button>
+              </div>
+            </label>
+            <label>业务场景与关注点<textarea id="businessContext" rows="7">面向园区管理层，每日关注园区整体经营质量、企业入驻与租金回款情况。重点发现空置风险、欠费风险和招商转化瓶颈，并能下钻到楼宇和企业。</textarea></label>
+            <div class="two-col"><label>主要使用人<select id="audience"><option>管理层 / 决策者</option><option>业务负责人</option><option>一线运营人员</option></select></label><label>更新频率<select><option>每日更新</option><option>实时更新</option><option>每周更新</option></select></label></div>
+            <div class="style-guide"><label>看板视觉风格<select id="dashboardStyle"><option value="科技风格">科技风格 · 深色光效与高对比数据</option><option value="清新风格">清新风格 · 明亮留白与柔和配色</option><option value="简约风格" selected>简约风格 · 克制配色与高信息效率</option><option value="深色风格">深色风格 · 暗色背景与沉浸展示</option><option value="商务风格">商务风格 · 稳重专业与管理层视角</option><option value="自定义">自定义风格</option></select></label><label>补充风格要求<input id="styleNotes" placeholder="例如：蓝紫色、弱化装饰、适合 1920×1080 大屏" /></label></div>
+          </section>
+
+          <section class="panel source-panel">
+            <div class="panel-head"><div><span class="num">2</span><b>提供数据与参考</b><span class="tag" id="dataStatus">待提供</span></div><div class="panel-actions"><button class="text-btn danger-text" id="clearSchema">清空结构</button><button class="text-btn" id="loadDemo">载入演示数据</button></div></div>
+            <div class="source-tabs"><button class="active" data-source-tab="schemaTab">数据库结构</button><button data-source-tab="databaseTab">数据库连接</button><button data-source-tab="fileTab">Excel / CSV</button><button data-source-tab="imageTab">看板参考图</button></div>
+            <div class="source-content active" id="schemaTab">
+              <div class="schema-source-actions"><button class="btn primary small" id="syncDatabaseSchema" type="button">↻ 从已连接数据库同步</button><span id="schemaSyncHint">连接测试通过后，可主动读取 CTL_TBL 与 FG_COLUMNS</span></div>
+              <div class="drop-zone" id="schemaDrop"><span class="upload-icon">⇧</span><b>拖入建表 SQL 或数据字典</b><p>支持 .sql、.json、.csv、.txt，模型仅使用实际存在的表与字段</p><button class="btn light" id="chooseSchema">选择文件</button><input type="file" id="schemaFile" hidden accept=".sql,.json,.csv,.txt" /></div>
+              <div class="schema-summary">
+                <div class="schema-stat"><strong id="schemaTableCount">0</strong><span>数据表</span></div><div class="schema-stat"><strong id="schemaFieldCount">0</strong><span>业务字段</span></div><div class="schema-stat"><strong id="schemaRelationCount">0</strong><span>关联关系</span></div>
+                <div class="schema-list" id="schemaList"><span>尚未识别数据结构</span></div>
+              </div>
+              <div class="file-analysis schema-details" id="schemaDetails"><span>同步数据库或上传结构文件后，在这里查看表和字段摘要</span></div>
+            </div>
+            <div class="source-content" id="databaseTab">
+              <div class="database-mode"><button class="active" type="button" data-db-mode="offline"><b>离线模式</b><small>使用上传的结构文件</small></button><button type="button" data-db-mode="online"><b>在线数据库</b><small>按需检索元数据</small></button></div>
+              <div class="database-offline-note" id="databaseOfflineNote"><b>当前使用离线模式</b><span>继续通过“数据库结构”或“Excel / CSV”上传元数据，不连接业务数据库。</span></div>
+              <div class="database-form" id="databaseForm">
+                <div class="two-col"><label>数据库类型<select id="databaseProvider"><option value="mysql">MySQL</option><option value="sqlserver">SQL Server</option><option value="oracle">Oracle</option><option value="dm">达梦 DM8</option></select></label><label>主机地址<input id="databaseHost" placeholder="例如 127.0.0.1" /></label></div>
+                <div class="three-col"><label>端口<input id="databasePort" type="number" value="3306" /></label><label>数据库 / 服务名<input id="databaseName" placeholder="数据库名或 Oracle Service Name" /></label><label>Schema<input id="databaseSchema" placeholder="可选，例如 dbo / SYSDBA" /></label></div>
+                <div class="two-col"><label>用户名<input id="databaseUser" autocomplete="username" /></label><label>密码<input id="databasePassword" type="password" autocomplete="new-password" placeholder="留空继续使用已保存密码" /></label></div>
+                <div class="database-options"><label><input id="databaseEncrypt" type="checkbox" /> 加密连接</label><label><input id="databaseTrustCert" type="checkbox" checked /> 信任服务器证书</label></div>
+                <div class="database-actions"><div id="databaseConnectionStatus"><span class="status-dot"></span><div><b>尚未配置在线数据库</b><small>密码只保存在本机应用数据目录</small></div></div><button class="btn primary small" type="button" id="connectDatabase">测试并保存</button></div>
+              </div>
+              <div class="database-stats"><div><span>CTL_TBL</span><strong id="databaseTableCount">--</strong><small>同步后显示表数量</small></div><div><span>FG_COLUMNS</span><strong id="databaseFieldCount">--</strong><small>同步后显示字段数量</small></div><p id="databaseStatsHint">测试连接只校验可用性；结构与数量由“数据库结构”页手动同步。</p></div>
+            </div>
+            <div class="source-content" id="fileTab">
+              <div class="drop-zone compact" id="dataFileDrop"><span class="upload-icon">▦</span><b>导入客户日常统计文件</b><p>支持 .xlsx、.csv · 本机提取表头与样例后由 DeepSeek 识别表、字段和关联</p><button class="btn light" id="chooseDataFile" type="button">选择 Excel / CSV</button><input type="file" id="dataFile" hidden accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" /></div>
+              <div class="file-analysis" id="fileAnalysis"><span>上传后将在这里显示模型识别结果</span></div>
+            </div>
+            <div class="source-content" id="imageTab">
+              <div class="drop-zone compact" id="imageDrop"><span class="upload-icon">▧</span><b>上传原型图或风格参考</b><p>支持 PNG、JPG、WebP · 最多 3 张 · 自动压缩后仅保存在本机</p><button class="btn light" id="chooseReference" type="button">选择图片</button><input type="file" id="referenceFile" hidden accept="image/png,image/jpeg,image/webp" multiple /></div>
+              <div class="reference-gallery" id="referenceGallery"><span>尚未添加参考图</span></div>
+            </div>
+          </section>
+
+          <section class="panel prompt-panel">
+            <div class="panel-head"><div><span class="num">3</span><b>生成指令</b></div><span class="tag" id="promptStatus">待确认</span></div>
+            <div class="prompt-card">
+              <div class="prompt-top"><span>✦</span><b>模型任务</b><button id="optimizePrompt">优化指令</button></div>
+              <textarea id="promptText" rows="6">请基于园区经营业务和已导入的数据库结构，设计一套管理层经营驾驶舱。重点展示出租率、合同金额、回款率、欠费金额、企业新增与招商转化。所有指标必须能映射到现有字段，并标注计算口径、维度与建议图表。</textarea>
+              <div class="prompt-meta"><span>已引用：业务简报</span><span>数据库结构</span><span>管理层视角</span></div>
+            </div>
+            <div class="ai-connection"><span class="pulse" id="aiPulse"></span><div><b id="aiStatus">正在检测 DeepSeek 生成服务</b><small id="aiModel">密钥仅由本机服务读取</small></div><button id="openAiSettings">配置</button></div>
+            <button class="generate-btn" id="generatePrototype"><span>✦</span><span><b>生成指标大纲</b><small>AI 将先确定指标、口径和建议图表</small></span><i>→</i></button>
+            <button class="example-plan-btn" id="loadExamplePlan" type="button">暂不连接 AI，载入一份本地示例方案</button>
+          </section>
+
+          <section class="panel blueprint-panel">
+            <div class="panel-head"><div><span class="num accent">4</span><b>指标大纲</b><span class="tag" id="metricStatus">等待生成</span></div><div class="mini-actions"><button id="addMetric">＋ 添加指标</button><button id="regenerateBtn" disabled>✦ 重新生成</button></div></div>
+            <div class="version-strip" id="versionStrip"><span>尚未生成版本</span></div>
+            <div class="metric-list" id="metricList"></div>
+            <div class="dashboard-generator">
+              <div><span class="eyebrow">VISUAL DASHBOARD</span><b>根据指标大纲生成可视看板</b><small id="dashboardStatus">指标大纲优先，数据结构与业务场景作为补充参考</small></div>
+              <button class="btn primary" id="generateDashboardBtn" disabled>✦ 生成看板</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="stage" id="stage-data">
+        <div class="stage-head"><div><span class="eyebrow">STEP 02 · DATA LOGIC</span><h1>把当前方案的指标映射到真实字段</h1><p>DeepSeek 提供指标参数契约；你选择第一步上传的字段后自动生成 SQL，也可以直接手写。</p></div><button class="btn primary" id="initializeDataLogic">↻ 同步当前方案</button></div>
+        <div class="data-workspace">
+          <section class="metric-nav panel"><div class="panel-head"><b>当前方案指标</b><span id="metricNavCount">0 项</span></div><div id="activePlanLabel" class="active-plan-label">尚未选择方案</div><div id="metricNav"></div></section>
+          <section class="sql-editor panel">
+            <div class="panel-head"><div><span class="status-dot" id="logicStatusDot"></span><b id="sqlMetricTitle">请先选择指标</b><span class="tag" id="parameterStatus">等待参数</span></div><button class="text-btn" id="resetSql">恢复模板</button></div>
+            <div class="metric-contract" id="dataMetricSummary"><span>选择左侧指标后查看取数要求</span></div>
+            <div class="parameter-head"><div><b>参数与字段映射</b><small>字段来自第一步上传并识别的数据结构</small></div><span id="mappingProgress">0 / 0</span></div>
+            <div class="parameter-mappings" id="parameterMappings"><div class="empty-mapping">尚无参数契约，请先在第一步生成看板</div></div>
+            <div class="sql-box-head"><div><b>SQL 编辑器</b><small>映射字段后自动替换占位符，仍可手工修改</small></div><select id="sqlDialect"><option value="SQL Server">SQL Server</option><option value="MySQL">MySQL</option><option value="Oracle">Oracle</option><option value="DM8">达梦 DM8</option><option value="PostgreSQL">PostgreSQL</option></select></div>
+            <div class="code-wrap editable-code"><div class="code-toolbar"><span id="sqlLanguageLabel">SQL · SQL Server</span><div><button id="aiCompleteSql">✦ AI 补全</button><button id="formatSql">格式化</button><button id="copySql">复制</button></div></div><textarea id="sqlEditor" spellcheck="false" placeholder="-- 选择字段后自动生成 SQL，或使用 AI 按需检索候选表字段"></textarea></div>
+            <div class="sql-ai-context" id="sqlAiContext"><span>AI 补全仅检索与当前指标相关的候选表及其字段，不发送全库元数据。</span></div>
+            <div class="validation-grid"><div><span id="fieldValidationIcon">○</span><b>必填参数</b><small id="fieldValidation">等待映射</small></div><div><span>○</span><b>关联关系</b><small>接入数据库后校验</small></div><div><span>○</span><b>SQL 测试</b><small>接入数据库后运行</small></div></div>
+          </section>
+          <aside class="config-panel panel"><div class="panel-head"><b>指标输出配置</b><span class="tag">DRAFT</span></div><label>指标编码<input id="metricCode" readonly /></label><label>图表类型<input id="metricChartType" readonly /></label><label>统计粒度<input id="metricGrain" readonly /></label><label>聚合方式<input id="metricAggregation" readonly /></label><label>刷新间隔<select id="metricRefresh"><option>5 分钟</option><option>实时</option><option>1 小时</option><option>每日</option></select></label><div class="metric-link-config"><label>指标跳转链接<input id="metricLinkUrl" type="url" placeholder="例如：https://system.example.com/contracts" /></label><small>配置后，在看板中点击当前指标将新开窗口访问该页面。</small><button class="btn light small full" id="testMetricLink" type="button">↗ 测试跳转</button></div><div class="logic-note"><b>当前阶段</b><p>先完成字段映射、SQL 草稿和指标跳转配置。真实连接、执行测试和入库配置将在后续开放。</p></div><button class="btn dark full" id="saveConfig">保存当前指标</button></aside>
+        </div>
+      </section>
+
+      <section class="stage" id="stage-deploy">
+        <div class="stage-head"><div><span class="eyebrow">STEP 03 · QUALITY & DELIVERY</span><h1>完成检查，然后把看板安全送上线</h1><p>一站式核对指标、数据与展示质量，并生成可复用的容器部署方案。</p></div><span class="readiness">上线就绪度 <b>92%</b></span></div>
+        <div class="deploy-grid">
+          <section class="panel checklist"><div class="panel-head"><b>发布检查</b><span class="tag complete">11 / 12 通过</span></div>
+            <div class="check-group"><h3>指标与数据</h3><label><input type="checkbox" checked /> 所有指标已绑定真实字段 <span>6/6</span></label><label><input type="checkbox" checked /> SQL 测试返回正常 <span>6/6</span></label><label><input type="checkbox" checked /> 空值与异常值规则已配置</label><label><input type="checkbox" checked /> 数据刷新频率已确认</label></div>
+            <div class="check-group"><h3>展示与体验</h3><label><input type="checkbox" checked /> 桌面端布局检查</label><label><input type="checkbox" checked /> 1366×768 大屏适配</label><label><input type="checkbox" checked /> 图表单位与口径说明</label><label class="warning"><input type="checkbox" /> 移动端布局检查 <span>建议完成</span></label></div>
+          </section>
+          <section class="panel deploy-config"><div class="panel-head"><b>部署方案</b><span class="tag">Docker + Nginx</span></div>
+            <div class="deploy-flow"><div class="done"><span>1</span><b>构建前端</b><small>静态资源</small></div><i>→</i><div class="done"><span>2</span><b>制作镜像</b><small>nginx:alpine</small></div><i>→</i><div><span>3</span><b>推送服务器</b><small>等待配置</small></div><i>→</i><div><span>4</span><b>健康检查</b><small>/health</small></div></div>
+            <div class="server-form"><label>服务器地址<input placeholder="例如 10.0.0.24" /></label><label>访问域名<input value="dashboard.example.com" /></label><label>服务端口<input value="8080" /></label><label>镜像名称<input value="park-dashboard:1.0.0" /></label></div>
+            <div class="code-wrap"><div class="code-toolbar"><span>自动生成的部署命令</span><button id="copyDeploy">复制全部</button></div><pre><code id="deployCode">docker build -t park-dashboard:1.0.0 .
+docker save park-dashboard:1.0.0 | gzip > park-dashboard.tar.gz
+scp park-dashboard.tar.gz user@server:/opt/dashboard/
+docker run -d --name park-dashboard -p 8080:80 --restart=always park-dashboard:1.0.0</code></pre></div>
+          </section>
+          <section class="panel release-card"><div class="release-icon">◈</div><div><span class="eyebrow">RELEASE CANDIDATE</span><h2>经营驾驶舱 v1.0</h2><p>6 个核心指标 · 4 个分析图表 · 8 张业务表</p></div><button class="btn primary" id="packageBtn">生成部署包</button></section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="previewModal" aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="preview-window">
+      <div class="preview-bar"><div><span class="live-dot"></span><b id="previewTitle">智慧园区经营驾驶舱</b><small id="previewSubtitle">结构预览 · 非真实业务值</small></div><div><button id="refreshDashboard">↻ 重新显示</button><button data-close>关闭</button></div></div>
+      <div class="dashboard-preview" id="dashboardPreview"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="metricModal" aria-hidden="true">
+    <div class="modal-backdrop" data-metric-close></div>
+    <div class="dialog">
+      <div class="dialog-head"><div><span class="eyebrow">METRIC EDITOR</span><h2 id="metricDialogTitle">新增指标</h2></div><button data-metric-close>×</button></div>
+      <form id="metricForm">
+        <input type="hidden" id="metricId" />
+        <label>指标名称<input id="metricName" required placeholder="例如：平均租金单价" /></label>
+        <label>计算口径<textarea id="metricDesc" required rows="3" placeholder="说明指标的计算方式与业务边界"></textarea></label>
+        <div class="two-col"><label>展示形式<select id="metricChart"><option>指标卡</option><option>指标卡 + 趋势</option><option>折线图</option><option>柱状图</option><option>饼图</option><option>漏斗图</option><option>数据表</option></select></label><label>图标<input id="metricIcon" value="◇" maxlength="2" /></label></div>
+        <div class="dialog-actions"><button type="button" class="btn ghost" data-metric-close>取消</button><button type="submit" class="btn primary">保存指标</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="aiSettingsModal" aria-hidden="true">
+    <div class="modal-backdrop" data-ai-close></div>
+    <div class="dialog ai-dialog">
+      <div class="dialog-head"><div><span class="eyebrow">MODEL CONNECTION</span><h2>AI 生成服务</h2></div><button data-ai-close>×</button></div>
+      <div class="provider-choice">
+        <button class="provider-option active" data-provider="deepseek"><span class="provider-logo">D</span><span><b>DeepSeek API</b><small>国内模型平台 · 默认</small></span><i>✓</i></button>
+        <button class="provider-option" data-provider="api"><span class="provider-logo">⌁</span><span><b>其他兼容模型</b><small>保留自定义接口 · 备用</small></span><i>✓</i></button>
+      </div>
+      <div class="provider-panel active" id="deepseekProvider">
+        <div class="security-note"><b>安全提供 API Key</b><p>请只在这里填写，不要发到聊天里。密钥会发送给 <code>127.0.0.1</code> 本机服务，并保存在系统应用数据目录；不会写入网页、项目文件或浏览器存储。</p></div>
+        <label>DeepSeek API Key<input id="deepseekApiKey" type="password" autocomplete="off" placeholder="sk-..." /></label>
+        <label>生成模型<select id="deepseekModel"><option value="deepseek-flash">DeepSeek Flash（推荐，支持参考图）</option><option value="deepseek-v4-pro">DeepSeek V4 Pro（质量优先）</option></select></label>
+        <p class="key-help" id="deepseekKeyStatus">尚未保存密钥</p>
+      </div>
+      <div class="provider-panel" id="apiProvider">
+        <div class="security-note"><b>保留其他兼容接口</b><p>备用模型的密钥仍只从本地环境变量读取，便于后续继续增加模型平台。</p></div>
+        <label>API 服务地址<input id="apiBaseUrl" value="https://api.example.com/v1" /></label>
+        <label>模型 ID<input id="customModel" value="your-model-id" /></label>
+        <div class="setup-code"><span>PowerShell 启动方式</span><code>$env:AI_API_KEY="你的密钥"<br>$env:AI_BASE_URL="https://api.openai.com/v1"<br>$env:AI_MODEL="gpt-5.4-mini"<br>node server.mjs</code></div>
+      </div>
+      <input type="hidden" id="aiEndpoint" value="/api/generate-dashboard" />
+      <div class="dialog-actions"><button class="btn ghost" id="testAi">保存并测试连接</button><button class="btn primary" id="saveAiSettings">仅保存配置</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
