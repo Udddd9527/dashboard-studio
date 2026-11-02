@@ -226,6 +226,30 @@ async function completeMetricSql(input){
   const result=await requestDeepSeekJson({settings,model:input.model,instructions,content:[{type:'input_text',text:JSON.stringify(payload)}],format:{type:'json_schema',name:'sql_completion',strict:true,schema:sqlCompletionSchema},label:'DeepSeek SQL 补全',maxOutputTokens:3500});
   return {...result,schemaContext:context,source:online?'database':'offline',scope:{candidateTableCount:context.tables.length,candidateFieldCount:context.tables.reduce((sum,table)=>sum+(table.fields?.length||0),0),searchTerms:context.searchTerms}};
 }
+function readOnlySql(input){
+  const sql=String(input||'').trim().replace(/;+\s*$/,'');
+  if(!sql)throw new Error('请先填写 SQL');
+  if(sql.length>30000)throw new Error('SQL 超过 30000 字符，请先精简');
+  const inspected=sql.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/--[^\r\n]*/g,' ').replace(/'(?:''|[^'])*'/g,"''").toLowerCase();
+  if(!/^(select|with)\b/.test(inspected.trim()))throw new Error('仅允许执行 SELECT 或 WITH 查询');
+  if(inspected.includes(';'))throw new Error('只允许执行一条 SQL 查询');
+  if(/\b(insert|update|delete|merge|drop|alter|create|truncate|grant|revoke|execute|exec|call|replace|commit|rollback|into|outfile|load\s+data|copy)\b/.test(inspected))throw new Error('检测到可能修改数据库的语句，已拒绝执行');
+  return sql;
+}
+function limitedDashboardSql(provider,sql,limit){
+  if(provider==='sqlserver')return `SET ROWCOUNT ${limit}; ${sql}; SET ROWCOUNT 0;`;
+  if(provider==='mysql')return `SELECT * FROM (${sql}) AS dashboard_query LIMIT ${limit}`;
+  return `SELECT * FROM (${sql}) dashboard_query WHERE ROWNUM <= ${limit}`;
+}
+async function onlineDatabase(){const config=await loadDatabase();if(config.mode!=='online'||!config.lastTestedAt)throw new Error('当前数据库为离线状态，无法校验或执行 SQL');return config}
+async function validateMetricSql(input){const config=await onlineDatabase(),sql=readOnlySql(input.sql),result=await executeDatabaseQuery(config,limitedDashboardSql(config.provider,sql,1),1);return {valid:true,columns:result.columns||[],sampleRow:result.rows?.[0]||null,provider:config.provider}}
+async function executeDashboardSql(input){
+  const config=await onlineDatabase(),metrics=Array.isArray(input.metrics)?input.metrics.slice(0,24):[];
+  if(!metrics.length)throw new Error('没有可执行的指标 SQL');
+  const results=[];
+  for(const metric of metrics){const metricId=String(metric.metricId||'').slice(0,120);try{const sql=readOnlySql(metric.sql),result=await executeDatabaseQuery(config,limitedDashboardSql(config.provider,sql,200),200);results.push({metricId,ok:true,columns:result.columns||[],rows:result.rows||[]})}catch(error){results.push({metricId,ok:false,error:error.message,columns:[],rows:[]})}}
+  return {mode:'online',provider:config.provider,results,executedAt:new Date().toISOString()};
+}
 async function generateVisualDashboard(input){
   if(!Array.isArray(input.metrics)||!input.metrics.length)throw new Error('请先完成指标大纲，再生成看板');
   const settings=await deepseekSettings();if(!settings.apiKey)throw new Error('请先在 AI 设置中保存 DeepSeek API Key');
@@ -257,6 +281,8 @@ const server=http.createServer(async(req,res)=>{
   if(url.pathname==='/api/generate-dashboard'&&req.method==='POST'){try{return send(res,200,await generateDashboard(await readBody(req)))}catch(error){return send(res,503,{error:error.message})}}
   if(url.pathname==='/api/generate-visual-dashboard'&&req.method==='POST'){try{return send(res,200,await generateVisualDashboard(await readBody(req)))}catch(error){return send(res,503,{error:error.message})}}
   if(url.pathname==='/api/complete-sql'&&req.method==='POST'){try{return send(res,200,await completeMetricSql(await readBody(req)))}catch(error){return send(res,503,{error:error.message})}}
+  if(url.pathname==='/api/validate-sql'&&req.method==='POST'){try{return send(res,200,await validateMetricSql(await readBody(req)))}catch(error){return send(res,400,{error:error.message})}}
+  if(url.pathname==='/api/execute-dashboard-sql'&&req.method==='POST'){try{return send(res,200,await executeDashboardSql(await readBody(req)))}catch(error){return send(res,400,{error:error.message})}}
   if(req.method!=='GET')return send(res,405,{error:'Method not allowed'});
   const raw=url.pathname==='/'?'/index.html':decodeURIComponent(url.pathname),path=normalize(join(root,raw));if(!path.startsWith(root))return send(res,403,{error:'Forbidden'});
   try{const info=await stat(path);if(!info.isFile())throw new Error();send(res,200,await readFile(path),types[extname(path)]||'application/octet-stream')}catch{send(res,404,{error:'Not found'})}
